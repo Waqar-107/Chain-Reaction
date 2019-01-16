@@ -18,6 +18,8 @@ def read_file(player_color):
     return None
 
 
+# ======================================================================
+# select move -> design heuristics, use it with alpha-beta pruning and select a movement
 def select_move(grid, player_color):
     while True:
         x = random.randint(0, 7)
@@ -25,6 +27,7 @@ def select_move(grid, player_color):
         if grid[x][y] == 'No' or grid[x][y][0] == player_color:
             return x, y
 
+# ======================================================================
 
 def write_move(move):
     str_to_write = '0\n' + str(move[0]) + " " + str(move[1])
@@ -33,11 +36,14 @@ def write_move(move):
 
 
 def main():
-    player_color = sys.argv[1]
+    #player_color = sys.argv[1]
+    player_color = input("player color?")
+
     while True:
         while True:
             # grid = read_file(player_color)
             grid = read_file(player_color)
+
             if grid is not None:
                 break
             time.sleep(.01)

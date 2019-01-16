@@ -8,7 +8,6 @@ import math
 import numpy as np
 import sys
 
-
 vertices = (
     (1.5, -1.5, -1.5),
     (1.5, 1.5, -1.5),
@@ -18,7 +17,7 @@ vertices = (
     (1.5, 1.5, 1.5),
     (-1.5, -1.5, 1.5),
     (-1.5, 1.5, 1.5)
-    )
+)
 
 edges = (
     (0, 1),
@@ -33,7 +32,7 @@ edges = (
     (5, 1),
     (5, 4),
     (5, 7)
-    )
+)
 
 
 def draw_text(position, text_string, size, color_):
@@ -102,25 +101,25 @@ def draw_sphere(radius, is_red):
     points = np.zeros((105, 105, 3))
     stack = 20
     slices = 20
-    for i in range(stack+1):
-        h = radius*math.sin(float((i/stack))*(math.pi/2))
-        r = radius*math.cos(float((i/stack))*(math.pi/2))
-        for j in range(slices+1):
-            points[i][j][0] = r*math.cos(float((j/slices))*2*math.pi)
-            points[i][j][1] = r*math.sin(float((j/slices))*2*math.pi)
+    for i in range(stack + 1):
+        h = radius * math.sin(float((i / stack)) * (math.pi / 2))
+        r = radius * math.cos(float((i / stack)) * (math.pi / 2))
+        for j in range(slices + 1):
+            points[i][j][0] = r * math.cos(float((j / slices)) * 2 * math.pi)
+            points[i][j][1] = r * math.sin(float((j / slices)) * 2 * math.pi)
             points[i][j][2] = h
     for i in range(stack):
-        glColor3f(is_red*(i+stack)/(2*stack), (1-is_red)*i/stack, 0)
+        glColor3f(is_red * (i + stack) / (2 * stack), (1 - is_red) * i / stack, 0)
         for j in range(slices):
             glBegin(GL_QUADS)
             glVertex3f(points[i][j][0], points[i][j][1], points[i][j][2])
-            glVertex3f(points[i][j+1][0], points[i][j+1][1], points[i][j+1][2])
-            glVertex3f(points[i+1][j+1][0], points[i+1][j+1][1], points[i+1][j+1][2])
-            glVertex3f(points[i+1][j][0], points[i+1][j][1], points[i+1][j][2])
+            glVertex3f(points[i][j + 1][0], points[i][j + 1][1], points[i][j + 1][2])
+            glVertex3f(points[i + 1][j + 1][0], points[i + 1][j + 1][1], points[i + 1][j + 1][2])
+            glVertex3f(points[i + 1][j][0], points[i + 1][j][1], points[i + 1][j][2])
             glVertex3f(points[i][j][0], points[i][j][1], -points[i][j][2])
-            glVertex3f(points[i][j+1][0], points[i][j+1][1], -points[i][j+1][2])
-            glVertex3f(points[i+1][j+1][0], points[i+1][j+1][1], -points[i+1][j+1][2])
-            glVertex3f(points[i+1][j][0], points[i+1][j][1], -points[i+1][j][2])
+            glVertex3f(points[i][j + 1][0], points[i][j + 1][1], -points[i][j + 1][2])
+            glVertex3f(points[i + 1][j + 1][0], points[i + 1][j + 1][1], -points[i + 1][j + 1][2])
+            glVertex3f(points[i + 1][j][0], points[i + 1][j][1], -points[i + 1][j][2])
             glEnd()
 
 
@@ -131,7 +130,7 @@ def draw_spheres():
         for j in range(len(grid[0])):
             if grid[i][j] != 'No':
                 glPushMatrix()
-                glTranslatef((i - 4)*3, (j - 4)*3, 0)
+                glTranslatef((i - 4) * 3, (j - 4) * 3, 0)
 
                 glRotatef(angles[i][j], 0, 0, 1)
                 angles[i][j] = (angles[i][j] + 5) % 360
@@ -200,10 +199,10 @@ def read_move():
     with open("shared_file.txt") as f:
         lines = f.readlines()
     f.close()
-    if len(lines)<2:
+    if len(lines) < 2:
         return None
     if lines[0].strip('\n') == '0':
-        if lines[0].strip('\n') == '0':
+        if lines[0].strip('\n') == '0':  # redundant check?? -107
             return lines[1].strip('\n').split()
     return None
 
@@ -250,7 +249,7 @@ def update_grid(selected_cube):
         atom_count = int(grid[x][y][1])
         if check_reaction(selected_cube) == atom_count + 1:
             cubes_to_update.append(selected_cube)
-        grid[x][y] = players[cur_player] + str(int(grid[x][y][1])+1)
+        grid[x][y] = players[cur_player] + str(int(grid[x][y][1]) + 1)
     grid_updated = True
 
 
@@ -285,7 +284,7 @@ def write_grid():
         f.write(str_to_write[:-1])
 
 
-
+# returns 1:green, 0:red, -1:not yet done
 def check_winner():
     global move_count, grid, invalid_move, cur_player
     if invalid_move:
@@ -331,8 +330,11 @@ def init():
     move_read = False
     invalid_move = False
     move_speed = int(sys.argv[1])
+    print("speed of graphics :",move_speed)
     write_grid()
 
+
+# graphics
 def display_grid():
     global is_over, grid, cur_player, players, cubes_to_update, grid_updated, move_count, move_read, invalid_move, \
         move_count, move_speed
@@ -383,15 +385,15 @@ def display_grid():
             draw_text((-5, 4, 30.0), "Player 1's move", 24, (250, 10, 10, 255))
         else:
             draw_text((-5, 4, 30.0), "Player 2's move", 24, (10, 250, 10, 255))
-        glColor3f(1-cur_player, cur_player, 0)
+        glColor3f(1 - cur_player, cur_player, 0)
         draw_grid()
         draw_spheres()
         if invalid_move:
-            draw_text((-4, 1, 30.0), "Invalid Move by Player" + str(cur_player+1), 64, (120, 120, 220, 255))
+            draw_text((-4, 1, 30.0), "Invalid Move by Player" + str(cur_player + 1), 64, (120, 120, 220, 255))
             is_over = True
 
         if check_winner() != -1:
-            draw_text((-2.5, 0, 30.0), "Player " + str(check_winner()+1)+" Wins", 64, (120, 120, 220, 255))
+            draw_text((-2.5, 0, 30.0), "Player " + str(check_winner() + 1) + " Wins", 64, (120, 120, 220, 255))
             is_over = True
         pygame.display.flip()
         pygame.time.wait(10)
