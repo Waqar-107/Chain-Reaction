@@ -5,6 +5,7 @@
 
 #define dbg printf("in\n")
 #define nl printf("\n")
+#define inf 1e9
 
 #define sf(n) scanf("%d", &n)
 #define sff(n,m) scanf("%d%d",&n,&m)
@@ -20,7 +21,9 @@
 #define pb push_back
 #define pp pair<char,int>
 #define ppi pair<int,int>
+
 #define SZ 8
+#define D 3
 
 using namespace std;
 
@@ -28,6 +31,7 @@ string str, line;
 vector<string> vec;
 char player, otherPlayer;
 pp grid[SZ][SZ];
+int splitCondition[SZ][SZ];
 
 int readFile()
 {
@@ -76,6 +80,7 @@ int readFile()
     return -1;
 }
 
+
 void printGrid()
 {
     for(int i = 0; i < 8; i++)
@@ -86,16 +91,210 @@ void printGrid()
     }
 }
 
-ppi select_move()
-{
-    while(true){
-        int x = rand() % 8;
-        int y = rand() % 8;
 
-        if(grid[x][y].second == 0 || grid[x][y].first == player)
-            return {x, y};
+int dx[] = {1, -1, 0, 0};
+int dy[] = {0, 0, 1, -1};
+
+ppi __successor__;
+int evaluate()
+{
+    return 5000;
+}
+
+
+int check_winner(pp **tempGrid)
+{
+    int r = 0, g = 0, emp = 0;
+    for(int i = 0; i < SZ; i++)
+    {
+        for(int j = 0; j < SZ; j++)
+        {
+            if(tempGrid[i][j].first == 'R')
+                r++;
+            else if(tempGrid[i][j].second == 'G')
+                g++;
+            else
+                emp++;
+        }
+    }
+
+    if(r && !g && !emp)
+        return 0;
+    if(g && !r && !emp)
+        return 1;
+    return -1;
+}
+
+
+void chainReaction(pp **tempGrid, int x, int y, char col)
+{
+    tempGrid[x][y].first = col;
+    tempGrid[x][y].second++;
+
+    if(tempGrid[x][y].second < splitCondition[x][y])
+        return;
+
+    tempGrid[x][y].second = 0;
+
+    int x2, y2;
+    for(int i = 0; i < 4; i++)
+    {
+        x2 = x + dx[i];
+        y2 = y + dy[i];
+
+        if(x2 > -1 && y2 > -1 && x2 < SZ && y2 < SZ)
+            chainReaction(tempGrid, x2, y2, col);
     }
 }
+
+
+void updateGrid(pp **tempGrid, int x, int y,char col)
+{
+    if(tempGrid[x][y].first == 'X')
+        tempGrid[x][y] = {col, 1};
+
+    else
+        chainReaction(tempGrid, x, y, col);
+}
+
+
+int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
+{
+    if(depth <= 0 || check_winner(tempGrid) != -1)
+        return evaluate();
+
+    pp backupGrid[SZ][SZ];
+    for(int i = 0; i < SZ; i++)
+    {
+        for(int j =0; j < SZ; j++)
+            backupGrid[i][j] = tempGrid[i][j];
+    }
+
+    int curr_value, best_value;
+    ppi successor;
+    bool f = false;
+
+    if(ismax)
+    {
+        best_value = -inf;
+
+        for(int i = 0; i < SZ; i++)
+        {
+            for(int j = 0; j < SZ; j++)
+            {
+                if(tempGrid[i][j].second == 0 || tempGrid[i][j].first == player)
+                {
+                    //update tempgrid
+                    updateGrid(tempGrid, i, j, player);
+                    curr_value = minimax(tempGrid, depth - 1, false, alpha, beta);
+
+                    if(curr_value > best_value)
+                        best_value = curr_value, successor = {i, j};
+
+                    alpha = max(alpha, best_value);
+                    if(beta <= alpha)
+                    {
+                        f = true;
+                        break;
+                    }
+
+                    for(int x = 0; x < SZ; x++)
+                    {
+                        for(int y =0; y < SZ; y++)
+                            tempGrid[x][y] = backupGrid[x][y];
+                    }
+                }
+            }
+
+            if(f)
+                break;
+        }
+
+        //set successor
+        if(depth == D)
+            __successor__ = successor;
+    }
+
+    else
+    {
+        best_value = inf;
+
+        for(int i = 0; i < SZ; i++)
+        {
+            for(int j = 0; j < SZ; j++)
+            {
+                if(tempGrid[i][j].second == 0 || tempGrid[i][j].first == otherPlayer)
+                {
+                    //update tempgrid
+                    updateGrid(tempGrid, i, j, otherPlayer);
+                    curr_value = minimax(tempGrid, depth - 1, true, alpha, beta);
+
+                    best_value = min(best_value, curr_value);
+                    beta = max(beta, best_value);
+
+                    if(beta <= alpha)
+                    {
+                        f = true;
+                        break;
+                    }
+
+                    for(int x = 0; x < SZ; x++)
+                    {
+                        for(int y =0; y < SZ; y++)
+                            tempGrid[x][y] = backupGrid[x][y];
+                    }
+                }
+            }
+
+            if(f)
+                break;
+        }
+    }
+
+    return best_value;
+}
+
+ppi select_move(int ch)
+{
+    //random
+    if(ch == 1)
+    {
+        while(true)
+        {
+            int x = rand() % 8;
+            int y = rand() % 8;
+
+            if(grid[x][y].second == 0 || grid[x][y].first == player)
+                return {x, y};
+        }
+    }
+
+    //minimax
+    else if(ch == 2)
+    {
+        __successor__ = {-1, -1};
+        pp **arr = new pp*[SZ];
+        for(int i = 0; i < SZ; i++)
+            arr[i] = new pp[SZ];
+
+        for(int i = 0; i < SZ; i++)
+        {
+            for(int j = 0; j < SZ; j++)
+                arr[i][j] = grid[i][j];
+        }
+
+        minimax(arr, D, true, -inf, inf);
+
+        //free memory
+        for(int i  = 0; i < SZ; i++)
+            delete arr[i];
+
+        delete arr;
+
+        return __successor__;
+    }
+}
+
 
 void writeFile(ppi x)
 {
@@ -116,6 +315,24 @@ int main()
     int i,j,k;
     int n,m;
 
+    //split conditions
+    for(i = 0; i < SZ; i++)
+    {
+        for(j = 0; j < SZ; j++)
+            splitCondition[i][j] = 4;
+    }
+
+    for(i = 0; i < SZ; i ++)
+    {
+        splitCondition[0][i] = 3;
+        splitCondition[SZ - 1][i] = 3;
+        splitCondition[i][0] = 3;
+        splitCondition[i][SZ - 1] = 3;
+    }
+
+    splitCondition[0][0] = splitCondition[SZ - 1][SZ - 1] = 2;
+    splitCondition[0][SZ - 1] = splitCondition[SZ - 1][0] = 2;
+
     //replace with arg
     cout<<"player color?\n";
     cin>>player;
@@ -125,19 +342,18 @@ int main()
         otherPlayer = 'G';
 
     while(true)
-     {
-         while(true)
-         {
-                m = readFile();
-                if(m != -1)
-                    break;
+    {
+        while(true)
+        {
+            m = readFile();
+            if(m != -1)
+                break;
+        }
 
-                usleep(10);
-         }
-
-         ppi x = select_move();
-         writeFile(x);
-     }
+        ppi x = select_move(2);
+        cout<<"selected "<<x.first<<" "<<x.first<<endl;
+        writeFile(x);
+    }
 
     return 0;
 }
