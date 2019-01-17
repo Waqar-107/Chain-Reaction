@@ -210,7 +210,7 @@ def read_move():
 def check_validity(values):
     global cur_player, players, invalid_move
 
-    print(values)
+    print('values:',values)
     if len(values) != 2:
         invalid_move = True
         return False
@@ -389,6 +389,7 @@ def display_grid():
         draw_grid()
         draw_spheres()
         if invalid_move:
+            print(cur_player)
             draw_text((-4, 1, 30.0), "Invalid Move by Player" + str(cur_player + 1), 64, (120, 120, 220, 255))
             is_over = True
 
