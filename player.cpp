@@ -23,7 +23,7 @@
 #define ppi pair<int,int>
 
 #define SZ 8
-#define D 3
+#define D 2
 
 using namespace std;
 
@@ -91,6 +91,17 @@ void printGrid()
     }
 }
 
+void printDynamicGrid(pp **arr){
+    for(int i = 0; i < 8; i++)
+    {
+        for(int j = 0; j < 8; j++)
+            cout<<arr[i][j].first<<arr[i][j].second<<" ";
+        nl;
+    }
+
+    nl;
+}
+
 
 int dx[] = {1, -1, 0, 0};
 int dy[] = {0, 0, 1, -1};
@@ -104,24 +115,26 @@ int evaluate()
 
 int check_winner(pp **tempGrid)
 {
-    int r = 0, g = 0, emp = 0;
+    int r = 0, g = 0;
     for(int i = 0; i < SZ; i++)
     {
         for(int j = 0; j < SZ; j++)
         {
             if(tempGrid[i][j].first == 'R')
-                r++;
+                r += (tempGrid[i][j].second - '0');
             else if(tempGrid[i][j].second == 'G')
-                g++;
-            else
-                emp++;
+                g += (tempGrid[i][j].second - '0');
         }
     }
 
-    if(r && !g && !emp)
+    //check winner after both of them have moved at least once
+    if(r + g <= 2)return -1;
+
+    if(r && !g)
         return 0;
-    if(g && !r && !emp)
+    if(g && !r)
         return 1;
+
     return -1;
 }
 
@@ -186,6 +199,7 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
                 {
                     //update tempgrid
                     updateGrid(tempGrid, i, j, player);
+
                     curr_value = minimax(tempGrid, depth - 1, false, alpha, beta);
 
                     if(curr_value > best_value)
@@ -219,14 +233,15 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
     {
         best_value = inf;
 
-        for(int i = 0; i < SZ; i++)
+        for(int i = 0; i < SZ - 1; i++)
         {
-            for(int j = 0; j < SZ; j++)
+            for(int j = 0; j < SZ - 1; j++)
             {
                 if(tempGrid[i][j].second == 0 || tempGrid[i][j].first == otherPlayer)
                 {
                     //update tempgrid
                     updateGrid(tempGrid, i, j, otherPlayer);
+
                     curr_value = minimax(tempGrid, depth - 1, true, alpha, beta);
 
                     best_value = min(best_value, curr_value);
@@ -310,11 +325,12 @@ void writeFile(ppi x)
     outfile.close();
 }
 
-int main()
+int main(int argc, char *argv[])
 {
     int i,j,k;
     int n,m;
 
+    //--------------------------------------------------------------------
     //split conditions
     for(i = 0; i < SZ; i++)
     {
@@ -332,10 +348,10 @@ int main()
 
     splitCondition[0][0] = splitCondition[SZ - 1][SZ - 1] = 2;
     splitCondition[0][SZ - 1] = splitCondition[SZ - 1][0] = 2;
+    //--------------------------------------------------------------------
 
     //replace with arg
-    cout<<"player color?\n";
-    cin>>player;
+    player = *argv[1];
 
     otherPlayer = 'R';
     if(player == 'R')
@@ -351,7 +367,6 @@ int main()
         }
 
         ppi x = select_move(2);
-        cout<<"selected ->"<<x.first<<" "<<x.first<<endl;
         writeFile(x);
     }
 
