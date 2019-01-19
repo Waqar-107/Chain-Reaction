@@ -228,7 +228,7 @@ def check_validity(values):
         return False
     return True
 
-
+#returns the number of cells selected_cube would effect if splitted
 def check_reaction(selected_cube):
     dirs = [(1, 0), (-1, 0), (0, 1), (0, -1)]
     count = 0

@@ -144,19 +144,40 @@ void chainReaction(pp **tempGrid, int x, int y, char col)
     tempGrid[x][y].first = col;
     tempGrid[x][y].second++;
 
-    if(tempGrid[x][y].second < splitCondition[x][y])
-        return;
-
-    tempGrid[x][y].second = 0;
-
+    ppi u; 
     int x2, y2;
-    for(int i = 0; i < 4; i++)
-    {
-        x2 = x + dx[i];
-        y2 = y + dy[i];
+    
+    queue<ppi> q;
+    q.push({x, y});
 
-        if(x2 > -1 && y2 > -1 && x2 < SZ && y2 < SZ)
-            chainReaction(tempGrid, x2, y2, col);
+    while(!q.empty())
+    {
+        u = q.front(); q.pop();
+
+        //because of chain reaction the game may have finished but the chain reactions would not stop
+        //this will cause segmentation fault in dfs, and an infinite loop in case of bfs
+        //so check if the game is over or not
+        if(check_winner(tempGrid) != -1)return;
+
+        if(tempGrid[u.first][u.second].second >= splitCondition[u.first][u.second])
+        {
+            tempGrid[u.first][u.second].second = 0;
+            tempGrid[u.first][u.second].first = 'X';
+
+            for(int i = 0; i < 4; i++)
+            {
+                x2 = u.first + dx[i];
+                y2 = u.second + dy[i];
+                if(x2 >= 0 && y2 >= 0 && x2 < SZ && y2 < SZ){
+                    tempGrid[x2][y2].first = col;
+                    tempGrid[x2][y2].second++;
+                    if(tempGrid[x2][y2].second >= splitCondition[x2][y2])
+                        q.push({x2, y2});
+                }
+            }
+cout<<u.first<<" "<<u.second<<endl;
+            printDynamicGrid(tempGrid);nl;
+        }
     }
 }
 
@@ -167,7 +188,7 @@ void updateGrid(pp **tempGrid, int x, int y,char col)
         tempGrid[x][y] = {col, 1};
 
     else
-        chainReaction(tempGrid, x, y, col);
+        pfs("start cr\n"),cout<<x<<" "<<y<<" "<<col<<endl,chainReaction(tempGrid, x, y, col),pfs("done cr\n");
 }
 
 
@@ -179,7 +200,7 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
     pp backupGrid[SZ][SZ];
     for(int i = 0; i < SZ; i++)
     {
-        for(int j =0; j < SZ; j++)
+        for(int j = 0; j < SZ; j++)
             backupGrid[i][j] = tempGrid[i][j];
     }
 
@@ -196,7 +217,7 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
             for(int j = 0; j < SZ; j++)
             {
                 if(tempGrid[i][j].second == 0 || tempGrid[i][j].first == player)
-                {
+                {cout<<i<<" "<<j<<" sel-max "<<tempGrid[i][j].first<<" "<<tempGrid[i][j].second<<endl;
                     //update tempgrid
                     updateGrid(tempGrid, i, j, player);
 
@@ -206,16 +227,17 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
                         best_value = curr_value, successor = {i, j};
 
                     alpha = max(alpha, best_value);
+
+                    for(int i2 = 0; i2 < SZ; i2++)
+                    {
+                        for(int j2 = 0; j2 < SZ; j2++)
+                            tempGrid[i2][j2] = backupGrid[i2][j2];
+                    }
+
                     if(beta <= alpha)
                     {
                         f = true;
                         break;
-                    }
-
-                    for(int x = 0; x < SZ; x++)
-                    {
-                        for(int y =0; y < SZ; y++)
-                            tempGrid[x][y] = backupGrid[x][y];
                     }
                 }
             }
@@ -233,30 +255,30 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
     {
         best_value = inf;
 
-        for(int i = 0; i < SZ - 1; i++)
+        for(int i = 0; i < SZ; i++)
         {
-            for(int j = 0; j < SZ - 1; j++)
+            for(int j = 0; j < SZ; j++)
             {
                 if(tempGrid[i][j].second == 0 || tempGrid[i][j].first == otherPlayer)
-                {
+                {cout<<i<<" "<<j<<" sel-min "<<tempGrid[i][j].first<<" "<<tempGrid[i][j].second<<endl;
                     //update tempgrid
                     updateGrid(tempGrid, i, j, otherPlayer);
-
+cout<<"upgraded\n";
                     curr_value = minimax(tempGrid, depth - 1, true, alpha, beta);
 
                     best_value = min(best_value, curr_value);
-                    beta = max(beta, best_value);
+                    beta = min(beta, best_value);
+cout<<"start rest\n";
+                    for(int i2 = 0; i2 < SZ; i2++)
+                    {
+                        for(int j2 = 0; j2 < SZ; j2++)
+                            tempGrid[i2][j2] = backupGrid[i2][j2];
+                    }cout<<"restored\n";
 
                     if(beta <= alpha)
                     {
                         f = true;
                         break;
-                    }
-
-                    for(int x = 0; x < SZ; x++)
-                    {
-                        for(int y =0; y < SZ; y++)
-                            tempGrid[x][y] = backupGrid[x][y];
                     }
                 }
             }
@@ -297,7 +319,7 @@ ppi select_move(int ch)
             for(int j = 0; j < SZ; j++)
                 arr[i][j] = grid[i][j];
         }
-
+printDynamicGrid(arr);nl;
         minimax(arr, D, true, -inf, inf);
 
         //free memory
@@ -352,6 +374,7 @@ int main(int argc, char *argv[])
 
     //replace with arg
     player = *argv[1];
+    k = *argv[2] - '0';
 
     otherPlayer = 'R';
     if(player == 'R')
@@ -366,7 +389,8 @@ int main(int argc, char *argv[])
                 break;
         }
 
-        ppi x = select_move(2);
+        ppi x = select_move(k);
+        
         writeFile(x);
     }
 
