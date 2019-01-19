@@ -117,17 +117,11 @@ int evaluate(pp **tempGrid)
         {
             if(tempGrid[i][j].first == 'R'){
                 r+= tempGrid[i][j].second;
-                if(tempGrid[i][j].second == 1 && ((i+1)< SZ && (j+1) < SZ) && ((i-1) >= 0 && (j-1) >= 0) ){
-                    if(tempGrid[i+1][j].first == otherPlayer || tempGrid[i-1][j].first==otherPlayer || tempGrid[i][j+1].first==otherPlayer || tempGrid[i][j-1].first==otherPlayer)
-                        r+= 20;
-                }
+                
             }
             else{
                 g+= tempGrid[i][j].second;
-                if(tempGrid[i][j].second == 1 && ((i+1)< SZ && (j+1) < SZ) && ((i-1) >= 0 && (j-1) >= 0) ){
-                    if(tempGrid[i+1][j].first == otherPlayer || tempGrid[i-1][j].first==otherPlayer || tempGrid[i][j+1].first==otherPlayer || tempGrid[i][j-1].first==otherPlayer)
-                        r+= 20;
-                }
+                
             }
 
         }
@@ -237,6 +231,9 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
     ppi successor;
     bool f = false;
 
+    //priority_queue <ppi> priorityQue;
+    int iteration_count = 0;
+
     if(ismax)
     {
         best_value = -inf;
@@ -247,6 +244,7 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
             {
                 if(tempGrid[i][j].second == 0 || tempGrid[i][j].first == player)
                 {
+                    //priorityQue.push({i,j});
                     cout<<i<<" "<<j<<" sel-max "<<tempGrid[i][j].first<<" "<<tempGrid[i][j].second<<endl;
                     //update tempgrid
                     updateGrid(tempGrid, i, j, player);
@@ -271,6 +269,7 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
                         f = true;
                         break;
                     }
+                    
                 }
             }
 
