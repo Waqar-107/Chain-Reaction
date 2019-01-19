@@ -133,6 +133,19 @@ int evaluate(pp **tempGrid)
         return g-r;
     }
     // return 5000;
+    /*********
+     * New proposal
+     *We shall call a cell critical if the number of orbs in the cell is equal to one less than its critical mass.
+
+    1. If the board is a won game, the value is 10000.
+    2. If the board is a lost game, the value is -10000.
+    3. For every orb, for every enemy critical cell surrounding the orb, subtract 5 minus the critical mass of that cell from the value.
+    4. In case, the orb has no critical enemy cells in its adjacent cells at all, add 2 to the value if it is an edge cell or 3 if it is a corner cell.
+    5. In case, the orb has no critical enemy cells in its adjacent cells at all, add 2 to the value, if the cell is critical.
+    6. For every orb of the player's color, add 1 to the value.
+    7. For every contiguous blocks of critical cells of the player's color, add twice the number of cells in the block to the score.
+ 
+    *********/
 }
 
 
