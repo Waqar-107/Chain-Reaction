@@ -107,9 +107,30 @@ int dx[] = {1, -1, 0, 0};
 int dy[] = {0, 0, 1, -1};
 
 ppi __successor__;
-int evaluate()
+int evaluate(pp **tempGrid)
 {
-    return 5000;
+    //Simle heuristic fr counting total orbs in the grid
+    int r =0 ,g=0;
+    for(int i = 0; i < SZ; i++)
+    {
+        for(int j = 0; j < SZ; j++)
+        {
+            if(tempGrid[i][j].first == 'R'){
+                r+= tempGrid[i][j].second;
+            }
+            else{
+                g+= tempGrid[i][j].second;
+            }
+
+        }
+    }
+    if(player == 'R'){
+        return r-g;
+    }
+    else{
+        return g-r;
+    }
+    // return 5000;
 }
 
 
@@ -175,7 +196,7 @@ void chainReaction(pp **tempGrid, int x, int y, char col)
                         q.push({x2, y2});
                 }
             }
-cout<<u.first<<" "<<u.second<<endl;
+    cout<<u.first<<" "<<u.second<<endl;
             printDynamicGrid(tempGrid);nl;
         }
     }
@@ -195,7 +216,7 @@ void updateGrid(pp **tempGrid, int x, int y,char col)
 int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
 {
     if(depth <= 0 || check_winner(tempGrid) != -1)
-        return evaluate();
+        return evaluate(tempGrid);
 
     pp backupGrid[SZ][SZ];
     for(int i = 0; i < SZ; i++)
@@ -217,14 +238,17 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
             for(int j = 0; j < SZ; j++)
             {
                 if(tempGrid[i][j].second == 0 || tempGrid[i][j].first == player)
-                {cout<<i<<" "<<j<<" sel-max "<<tempGrid[i][j].first<<" "<<tempGrid[i][j].second<<endl;
+                {
+                    cout<<i<<" "<<j<<" sel-max "<<tempGrid[i][j].first<<" "<<tempGrid[i][j].second<<endl;
                     //update tempgrid
                     updateGrid(tempGrid, i, j, player);
 
                     curr_value = minimax(tempGrid, depth - 1, false, alpha, beta);
 
-                    if(curr_value > best_value)
+                    if(curr_value > best_value){
                         best_value = curr_value, successor = {i, j};
+                        cout<<"Better val :"<<best_value<<" Coord :"<<successor.first<<" "<<successor.second<<endl;
+                    }
 
                     alpha = max(alpha, best_value);
 
@@ -250,25 +274,25 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
         if(depth == D)
             __successor__ = successor;
     }
-
     else
     {
         best_value = inf;
-
+        cout<<"inside min\n";
         for(int i = 0; i < SZ; i++)
         {
             for(int j = 0; j < SZ; j++)
             {
                 if(tempGrid[i][j].second == 0 || tempGrid[i][j].first == otherPlayer)
-                {cout<<i<<" "<<j<<" sel-min "<<tempGrid[i][j].first<<" "<<tempGrid[i][j].second<<endl;
+                {
+                    cout<<i<<" "<<j<<" sel-min "<<tempGrid[i][j].first<<" "<<tempGrid[i][j].second<<endl;
                     //update tempgrid
                     updateGrid(tempGrid, i, j, otherPlayer);
-cout<<"upgraded\n";
+                    cout<<"upgraded\n";
                     curr_value = minimax(tempGrid, depth - 1, true, alpha, beta);
 
                     best_value = min(best_value, curr_value);
                     beta = min(beta, best_value);
-cout<<"start rest\n";
+                    cout<<"start rest\n";
                     for(int i2 = 0; i2 < SZ; i2++)
                     {
                         for(int j2 = 0; j2 < SZ; j2++)
@@ -319,7 +343,7 @@ ppi select_move(int ch)
             for(int j = 0; j < SZ; j++)
                 arr[i][j] = grid[i][j];
         }
-printDynamicGrid(arr);nl;
+        printDynamicGrid(arr);nl;
         minimax(arr, D, true, -inf, inf);
 
         //free memory
