@@ -26,6 +26,9 @@
 #define SZ 8
 #define D 2
 
+#define R 0
+#define G 1
+
 using namespace std;
 
 string str, line;
@@ -108,6 +111,135 @@ int dx[] = {1, -1, 0, 0};
 int dy[] = {0, 0, 1, -1};
 
 ppi __successor__;
+
+int check_winner(pp **tempGrid)
+{
+    int r = 0, g = 0;
+    for(int i = 0; i < SZ; i++)
+    {
+        for(int j = 0; j < SZ; j++)
+        {
+            if(tempGrid[i][j].first == 'R')
+                r += (tempGrid[i][j].second - '0');
+            else if(tempGrid[i][j].second == 'G')
+                g += (tempGrid[i][j].second - '0');
+        }
+    }
+
+    //check winner after both of them have moved at least once
+    if(r + g <= 2)return -1;
+
+    if(r && !g)
+        return R;
+    if(g && !r)
+        return G;
+
+    return -1;
+}
+
+bool inside(int x, int y){
+    return x >= 0 && y >= 0 && x < SZ && y < SZ;
+}
+
+bool isCritical(pp **tempGrid, int x, int y)
+{
+    if(tempGrid[x][y].second + 1 == splitCondition[x][y])
+        return true;
+
+    return false;
+}
+
+int heuristic_bri(pp **tempGrid, char col, char otherCol)
+{
+    int cnt = 0;
+    int k = check_winner(tempGrid);
+
+    //1 and 2
+    if(k != -1){
+        if(col == 'R' && k == R)
+            cnt += 1e4;
+        else if(col=='G' && k == G)
+            cnt += 1e4;
+        else
+            cnt -= 1e4;
+    }
+
+    //3
+    bool f;
+    int x2, y2;
+    for(int i = 0; i < SZ; i++)
+    {
+        for(int j = 0; j < SZ; j++)
+        {
+            if(tempGrid[i][j].first == otherCol)continue;
+
+            f = false;
+            for(int k = 0; k < 4; k++)
+            {
+                f = true;
+                x2 = dx[k] + i;
+                y2 = dy[k] + j;
+                if(inside(x2, y2) && tempGrid[x2][y2].first ==  otherCol && tempGrid[x2][y2].second == splitCondition[x2][y2])
+                    cnt -= (5 - splitCondition[x2][y2]);
+            }
+
+            //4 -> no critical enemy and is edge/corner cell
+            if(!f){
+                if(splitCondition[i][j] == 2)cnt += 3;
+                else if(splitCondition[i][j] == 3)cnt +=2;
+            }
+
+            //5 -> no enemy and is critical
+            if(!f && isCritical(tempGrid, i, j))cnt += 2;
+
+            //6 -> for every orb of the players color add 1
+            cnt += tempGrid[i][j].second;
+        }
+    }
+
+    //7->For every contiguous blocks of critical cells of the player's color, \
+    add twice the number of cells in the block to the score
+
+    //blocks in row major order
+    int sum;
+    for(int i = 0; i < SZ; i++)
+    {
+        sum = 0;
+        for(int j = 1; j < SZ; j++)
+        {
+            if(tempGrid[i][j].first == col && tempGrid[i][j].first == tempGrid[i][j-1].first)
+                sum++;
+            else{
+                cnt += 2 *sum;
+                sum = 0;
+            }
+        }
+
+        //a row may have all the orbs of same color
+        cnt += 2 *sum;
+        sum = 0;
+    }
+
+    //blocks in column
+    for(int i = 0; i < SZ; i++)
+    {
+        sum = 0;
+        for(int j = 1; j < SZ; j++)
+        {
+            if(tempGrid[j][i].first == col && tempGrid[j][i].first == tempGrid[j-1][i].first)
+                sum++;
+            else{
+                cnt += 2 *sum;
+                sum = 0;
+            }
+        }
+
+        //the entire column may have orbs of same color
+        cnt += 2 *sum;
+        sum = 0;
+    }
+}
+
 int evaluate(pp **tempGrid)
 {
     //Simple heuristic fr counting total orbs in the grid
@@ -118,11 +250,11 @@ int evaluate(pp **tempGrid)
         {
             if(tempGrid[i][j].first == 'R'){
                 r+= tempGrid[i][j].second;
-                
+
             }
             else{
                 g+= tempGrid[i][j].second;
-                
+
             }
 
         }
@@ -145,35 +277,11 @@ int evaluate(pp **tempGrid)
     5. In case, the orb has no critical enemy cells in its adjacent cells at all, add 2 to the value, if the cell is critical.
     6. For every orb of the player's color, add 1 to the value.
     7. For every contiguous blocks of critical cells of the player's color, add twice the number of cells in the block to the score.
- 
+
     *********/
 }
 
 
-int check_winner(pp **tempGrid)
-{
-    int r = 0, g = 0;
-    for(int i = 0; i < SZ; i++)
-    {
-        for(int j = 0; j < SZ; j++)
-        {
-            if(tempGrid[i][j].first == 'R')
-                r += (tempGrid[i][j].second - '0');
-            else if(tempGrid[i][j].second == 'G')
-                g += (tempGrid[i][j].second - '0');
-        }
-    }
-
-    //check winner after both of them have moved at least once
-    if(r + g <= 2)return -1;
-
-    if(r && !g)
-        return 0;
-    if(g && !r)
-        return 1;
-
-    return -1;
-}
 
 
 void chainReaction(pp **tempGrid, int x, int y, char col)
@@ -181,9 +289,9 @@ void chainReaction(pp **tempGrid, int x, int y, char col)
     tempGrid[x][y].first = col;
     tempGrid[x][y].second++;
 
-    ppi u; 
+    ppi u;
     int x2, y2;
-    
+
     queue<ppi> q;
     q.push({x, y});
 
@@ -283,7 +391,7 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
                         f = true;
                         break;
                     }
-                    
+
                 }
             }
 
@@ -307,18 +415,18 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
                     cout<<i<<" "<<j<<" sel-min "<<tempGrid[i][j].first<<" "<<tempGrid[i][j].second<<endl;
                     //update tempgrid
                     updateGrid(tempGrid, i, j, otherPlayer);
-                    
+
                     curr_value = minimax(tempGrid, depth - 1, true, alpha, beta);
 
                     best_value = min(best_value, curr_value);
                     beta = min(beta, best_value);
-                   
+
                     for(int i2 = 0; i2 < SZ; i2++)
                     {
                         for(int j2 = 0; j2 < SZ; j2++)
                             tempGrid[i2][j2] = backupGrid[i2][j2];
                     }
-                    
+
                     if(beta <= alpha)
                     {
                         f = true;
@@ -374,7 +482,7 @@ ppi select_move(int ch)
             end = clock() - start;
             time = end/CLOCKS_PER_SEC * 1000;
         }
-        
+
         //free memory
         for(int i  = 0; i < SZ; i++)
             delete arr[i];
@@ -445,7 +553,7 @@ int main(int argc, char *argv[])
         ppi x = select_move(k);
         // ppi x;
         // cin>>x.first>>x.second;
-        
+
         writeFile(x);
     }
 
