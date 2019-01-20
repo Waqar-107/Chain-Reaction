@@ -33,6 +33,7 @@ vector<string> vec;
 char player, otherPlayer;
 pp grid[SZ][SZ];
 int splitCondition[SZ][SZ];
+int D = 2;
 
 //void update(pp **tempGrid, int x,int y, char col);
 //void reaction(pp **tempGrid, int x,int y,char col);
@@ -362,8 +363,7 @@ ppi select_move(int ch)
         clock_t start,end;
 
 	    start = clock();
-        int D = 2;
-
+        D = 2;
         __successor__ = {-1, -1};
         pp **arr = new pp*[SZ];
         for(int i = 0; i < SZ; i++)
