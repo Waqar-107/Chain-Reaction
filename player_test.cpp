@@ -24,7 +24,7 @@
 #define ppi pair<int,int>
 
 #define SZ 8
-#define D 2
+// #define D 2
 
 #define R 0
 #define G 1
@@ -36,6 +36,7 @@ vector<string> vec;
 char player, otherPlayer;
 pp grid[SZ][SZ];
 int splitCondition[SZ][SZ];
+int D = 2;
 
 int readFile()
 {
@@ -465,6 +466,7 @@ ppi select_move(int ch)
         clock_t start,end;
 
 	    start = clock();
+        D = 2;
 
         __successor__ = {-1, -1};
         pp **arr = new pp*[SZ];
@@ -478,10 +480,14 @@ ppi select_move(int ch)
         }
         printDynamicGrid(arr);nl;
         float time = 0.0;
-        while(time < 1500){
+        while(time < 500){
             minimax(arr, D, true, -inf, inf);
             end = clock() - start;
             time = end/CLOCKS_PER_SEC * 1000;
+            cout<<"Time : "<<time<<" D: "<<D<<endl;
+            D++;
+            if(D  >= 5)
+                break;
         }
 
         //free memory
