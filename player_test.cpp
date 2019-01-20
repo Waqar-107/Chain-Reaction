@@ -340,7 +340,8 @@ void updateGrid(pp **tempGrid, int x, int y,char col)
 int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
 {
     if(depth <= 0 || check_winner(tempGrid) != -1)
-        return evaluate(tempGrid);
+        return heuristic_bri(tempGrid,player,otherPlayer);
+        // return evaluate(tempGrid);
 
     pp backupGrid[SZ][SZ];
     for(int i = 0; i < SZ; i++)
