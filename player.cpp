@@ -132,17 +132,20 @@ int evaluate(pp **tempGrid)
         }
     }
     if(player == 'R'){
-        return r-g;
+        int diff = r-g;
+        g == 0 ? diff = 20000 :diff= r-g;
+        return diff;
     }
     else{
-        return g-r;
+        int diff = g-r;
+        r == 0 ? diff = 20000 :diff= g-r;
+        return diff;
     }
     // return 5000;
     /*********
      * New proposal
      *We shall call a cell critical if the number of orbs in the cell is equal to one less than its critical mass.
 
-    1. If the board is a won game, the value is 10000.
     2. If the board is a lost game, the value is -10000.
     3. For every orb, for every enemy critical cell surrounding the orb, subtract 5 minus the critical mass of that cell from the value.
     4. In case, the orb has no critical enemy cells in its adjacent cells at all, add 2 to the value if it is an edge cell or 3 if it is a corner cell.
@@ -376,10 +379,11 @@ ppi select_move(int ch)
         }
         printDynamicGrid(arr);nl;
         float time = 0.0;
-        while(time < 1500){
+        while(time < 900){
             minimax(arr, D, true, -inf, inf);
             end = clock() - start;
             time = end/CLOCKS_PER_SEC * 1000;
+            cout<<"Time : "<<time<<" D: "<<D<<endl;
             D++;
         }
 
