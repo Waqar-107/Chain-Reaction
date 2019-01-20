@@ -433,12 +433,12 @@ int main(int argc, char *argv[])
         }
 
         //ppi x = select_move(k);
-        printf("Enter coordinates:\nFirst: ");
+        printf("Enter coordinates:\nx-coord: ");
         ppi x;
         //scanf("First : %d\n Second : %d\n",&x.first,&x.second);
         
         cin>>x.first;
-        cout<<"Second : ";
+        cout<<"y-coord : ";
         cin>>x.second;
 
         writeFile(x);
