@@ -23,7 +23,7 @@
 #define ppi pair<int,int>
 
 #define SZ 8
-#define D 2
+#define D 1
 
 using namespace std;
 
@@ -32,9 +32,6 @@ vector<string> vec;
 char player, otherPlayer;
 pp grid[SZ][SZ];
 int splitCondition[SZ][SZ];
-
-//void update(pp **tempGrid, int x,int y, char col);
-//void reaction(pp **tempGrid, int x,int y,char col);
 
 int readFile()
 {
@@ -177,61 +174,58 @@ int check_winner(pp **tempGrid)
     return -1;
 }
 
-//-------------------------------------------------------------------------------------------------
-vector<ppi> wec;
-void update_grid(pp **tempGrid, int x,int y, char col)
+
+void chainReaction(pp **tempGrid, int x, int y, char col)
+{
+    tempGrid[x][y].first = col;
+    tempGrid[x][y].second++;
+
+    ppi u; 
+    int x2, y2;
+    
+    queue<ppi> q;
+    q.push({x, y});
+
+    while(!q.empty())
+    {
+        u = q.front(); q.pop();
+
+        //because of chain reaction the game may have finished but the chain reactions would not stop
+        //this will cause segmentation fault in dfs, and an infinite loop in case of bfs
+        //so check if the game is over or not
+        if(check_winner(tempGrid) != -1)return;
+
+        if(tempGrid[u.first][u.second].second >= splitCondition[u.first][u.second])
+        {
+            tempGrid[u.first][u.second].second = 0;
+            tempGrid[u.first][u.second].first = 'X';
+
+            for(int i = 0; i < 4; i++)
+            {
+                x2 = u.first + dx[i];
+                y2 = u.second + dy[i];
+                if(x2 >= 0 && y2 >= 0 && x2 < SZ && y2 < SZ){
+                    tempGrid[x2][y2].first = col;
+                    tempGrid[x2][y2].second++;
+                    if(tempGrid[x2][y2].second >= splitCondition[x2][y2])
+                        q.push({x2, y2});
+                }
+            }
+            cout<<u.first<<" "<<u.second<<endl;
+            printDynamicGrid(tempGrid);nl;
+        }
+    }
+}
+
+
+void updateGrid(pp **tempGrid, int x, int y,char col)
 {
     if(tempGrid[x][y].first == 'X')
-        tempGrid[x][y].first = col, tempGrid[x][y].second = 1;
-    
+        tempGrid[x][y] = {col, 1};
+
     else
-    {
-        if(splitCondition[x][y] == tempGrid[x][y].second + 1)
-            wec.pb({x, y});
-        
-        tempGrid[x][y].first = col;
-        tempGrid[x][y].second++;
-    }
+        chainReaction(tempGrid, x, y, col);
 }
-
-
-void reaction(pp **tempGrid, int x,int y,char col)
-{
-    int x2, y2, cnt;
-    if(tempGrid[x][y].second == splitCondition[x][y])
-        tempGrid[x][y].first = 'X', tempGrid[x][y].second = 0;
-    
-    else
-    {
-        cnt = tempGrid[x][y].second - splitCondition[x][y];
-        if(cnt >= splitCondition[x][y])
-            wec.pb({x, y});
-        
-        tempGrid[x][y].first = col;
-        tempGrid[x][y].second = cnt;
-    }
-    
-    for(int i = 0;i < 4; i++)
-    {
-        x2 = x + dx[i];
-        y2 = y + dy[i];
-
-        if(x2 >= 0 && x2 < SZ && y2 >= 0 && y2 < SZ)
-            update_grid(tempGrid, x2, y2, col);
-    }
-}
-
-
-void update(pp **tempGrid, int x,int y, char col)
-{
-    wec.clear();
-    update_grid(tempGrid, x, y, col);
-
-    for(ppi e : wec){
-        reaction(tempGrid, e.first, e.second, col);
-    }
-}
-//-------------------------------------------------------------------------------------------------
 
 
 int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
@@ -266,7 +260,7 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
                     //priorityQue.push({i,j});
                     cout<<i<<" "<<j<<" sel-max "<<tempGrid[i][j].first<<" "<<tempGrid[i][j].second<<endl;
                     //update tempgrid
-                    update(tempGrid, i, j, player);
+                    updateGrid(tempGrid, i, j, player);
 
                     curr_value = minimax(tempGrid, depth - 1, false, alpha, beta);
 
@@ -311,7 +305,7 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
                 {
                     cout<<i<<" "<<j<<" sel-min "<<tempGrid[i][j].first<<" "<<tempGrid[i][j].second<<endl;
                     //update tempgrid
-                    update(tempGrid, i, j, otherPlayer);
+                    updateGrid(tempGrid, i, j, otherPlayer);
                     
                     curr_value = minimax(tempGrid, depth - 1, true, alpha, beta);
 
@@ -323,7 +317,7 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
                         for(int j2 = 0; j2 < SZ; j2++)
                             tempGrid[i2][j2] = backupGrid[i2][j2];
                     }
-
+                    
                     if(beta <= alpha)
                     {
                         f = true;
@@ -438,7 +432,9 @@ int main(int argc, char *argv[])
                 break;
         }
 
-        ppi x = select_move(k);
+        //ppi x = select_move(k);
+        ppi x;
+        cin>>x.first>>x.second;
         
         writeFile(x);
     }

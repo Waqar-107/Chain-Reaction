@@ -207,6 +207,7 @@ def read_move():
     return None
 
 
+#checks if a move is valid or not, if player makes an invalid move, otherPlayer wins
 def check_validity(values):
     global cur_player, players, invalid_move
 
@@ -228,7 +229,8 @@ def check_validity(values):
         return False
     return True
 
-#returns the number of cells selected_cube would effect if splitted
+
+#returns the number of adjacent cells of the selected_cube - 4/3/2 cells
 def check_reaction(selected_cube):
     dirs = [(1, 0), (-1, 0), (0, 1), (0, -1)]
     count = 0
