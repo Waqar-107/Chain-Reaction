@@ -2,6 +2,7 @@
 
 #include<bits/stdc++.h>
 #include<unistd.h>
+#include <ctime>
 
 #define dbg printf("in\n")
 #define nl printf("\n")
@@ -352,6 +353,10 @@ ppi select_move(int ch)
     //minimax
     else if(ch == 2)
     {
+        clock_t start,end;
+
+	    start = clock();
+
         __successor__ = {-1, -1};
         pp **arr = new pp*[SZ];
         for(int i = 0; i < SZ; i++)
@@ -363,8 +368,13 @@ ppi select_move(int ch)
                 arr[i][j] = grid[i][j];
         }
         printDynamicGrid(arr);nl;
-        minimax(arr, D, true, -inf, inf);
-
+        float time = 0.0;
+        while(time < 1500){
+            minimax(arr, D, true, -inf, inf);
+            end = clock() - start;
+            time = end/CLOCKS_PER_SEC * 1000;
+        }
+        
         //free memory
         for(int i  = 0; i < SZ; i++)
             delete arr[i];

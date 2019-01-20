@@ -2,6 +2,7 @@
 
 #include<bits/stdc++.h>
 #include<unistd.h>
+#include <ctime>
 
 #define dbg printf("in\n")
 #define nl printf("\n")
@@ -23,7 +24,7 @@
 #define ppi pair<int,int>
 
 #define SZ 8
-#define D 2
+// #define D 2
 
 using namespace std;
 
@@ -358,6 +359,11 @@ ppi select_move(int ch)
     //minimax
     else if(ch == 2)
     {
+        clock_t start,end;
+
+	    start = clock();
+        int D = 2;
+
         __successor__ = {-1, -1};
         pp **arr = new pp*[SZ];
         for(int i = 0; i < SZ; i++)
@@ -369,7 +375,13 @@ ppi select_move(int ch)
                 arr[i][j] = grid[i][j];
         }
         printDynamicGrid(arr);nl;
-        minimax(arr, D, true, -inf, inf);
+        float time = 0.0;
+        while(time < 1500){
+            minimax(arr, D, true, -inf, inf);
+            end = clock() - start;
+            time = end/CLOCKS_PER_SEC * 1000;
+            D++;
+        }
 
         //free memory
         for(int i  = 0; i < SZ; i++)
