@@ -23,7 +23,7 @@
 #define ppi pair<int,int>
 
 #define SZ 8
-#define D 1
+#define D 2
 
 using namespace std;
 
@@ -266,7 +266,7 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
 
                     if(curr_value > best_value){
                         best_value = curr_value, successor = {i, j};
-                        //cout<<"Better val :"<<best_value<<" Coord :"<<successor.first<<" "<<successor.second<<endl;
+                        cout<<"Better val :"<<best_value<<" Coord :"<<successor.first<<" "<<successor.second<<endl;
                     }
 
                     alpha = max(alpha, best_value);
@@ -432,9 +432,9 @@ int main(int argc, char *argv[])
                 break;
         }
 
-        //ppi x = select_move(k);
-        ppi x;
-        cin>>x.first>>x.second;
+        ppi x = select_move(k);
+        // ppi x;
+        // cin>>x.first>>x.second;
         
         writeFile(x);
     }
