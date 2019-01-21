@@ -331,7 +331,8 @@ def init():
     move_count = 0
     move_read = False
     invalid_move = False
-    move_speed = int(sys.argv[1])
+    #move_speed = int(sys.argv[1])
+    move_speed = 0
     print("speed of graphics :",move_speed)
     write_grid()
 

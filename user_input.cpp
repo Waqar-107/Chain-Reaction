@@ -117,11 +117,11 @@ int evaluate(pp **tempGrid)
         {
             if(tempGrid[i][j].first == 'R'){
                 r+= tempGrid[i][j].second;
-                
+
             }
             else{
                 g+= tempGrid[i][j].second;
-                
+
             }
 
         }
@@ -144,7 +144,7 @@ int evaluate(pp **tempGrid)
     5. In case, the orb has no critical enemy cells in its adjacent cells at all, add 2 to the value, if the cell is critical.
     6. For every orb of the player's color, add 1 to the value.
     7. For every contiguous blocks of critical cells of the player's color, add twice the number of cells in the block to the score.
- 
+
     *********/
 }
 
@@ -180,9 +180,9 @@ void chainReaction(pp **tempGrid, int x, int y, char col)
     tempGrid[x][y].first = col;
     tempGrid[x][y].second++;
 
-    ppi u; 
+    ppi u;
     int x2, y2;
-    
+
     queue<ppi> q;
     q.push({x, y});
 
@@ -282,7 +282,7 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
                         f = true;
                         break;
                     }
-                    
+
                 }
             }
 
@@ -306,18 +306,18 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
                     cout<<i<<" "<<j<<" sel-min "<<tempGrid[i][j].first<<" "<<tempGrid[i][j].second<<endl;
                     //update tempgrid
                     updateGrid(tempGrid, i, j, otherPlayer);
-                    
+
                     curr_value = minimax(tempGrid, depth - 1, true, alpha, beta);
 
                     best_value = min(best_value, curr_value);
                     beta = min(beta, best_value);
-                   
+
                     for(int i2 = 0; i2 < SZ; i2++)
                     {
                         for(int j2 = 0; j2 < SZ; j2++)
                             tempGrid[i2][j2] = backupGrid[i2][j2];
                     }
-                    
+
                     if(beta <= alpha)
                     {
                         f = true;
@@ -436,7 +436,7 @@ int main(int argc, char *argv[])
         printf("Enter coordinates:\nx-coord: ");
         ppi x;
         //scanf("First : %d\n Second : %d\n",&x.first,&x.second);
-        
+
         cin>>x.first;
         cout<<"y-coord : ";
         cin>>x.second;
