@@ -246,7 +246,7 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
     {
         best_value = -inf;
 
-        for(int i = 0; i < SZ; i++)
+        for(int i = SZ - 1; i >= 0; i--)
         {
             for(int j = 0; j < SZ; j++)
             {
@@ -292,7 +292,7 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
     else
     {
         best_value = inf;
-        for(int i = 0; i < SZ; i++)
+        for(int i = SZ - 1; i >= 0; i--)
         {
             for(int j = 0; j < SZ; j++)
             {
@@ -426,12 +426,14 @@ int main(int argc, char *argv[])
 
     //replace with arg
     player = *argv[1];
-    k = *argv[2] - '0';
+    //k = *argv[2] - '0';
 
     otherPlayer = 'R';
     if(player == 'R')
         otherPlayer = 'G';
 
+    //flag - > if red and first move then choose randomly
+    bool flag = 1;
     while(true)
     {
         while(true)
@@ -441,7 +443,10 @@ int main(int argc, char *argv[])
                 break;
         }
 
-        ppi x = select_move(k);
+        ppi x;
+
+        if(player == 'R' && flag){x = select_move(1); flag = 0;}
+        else x =select_move(2);
 
         writeFile(x);
     }
