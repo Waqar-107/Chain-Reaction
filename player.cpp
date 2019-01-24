@@ -28,6 +28,10 @@
 
 using namespace std;
 
+//clock
+double time_threshold = 2.50, time_spent;
+clock_t time_begin, time_end;
+
 string str, line;
 vector<string> vec;
 char player, otherPlayer;
@@ -109,9 +113,10 @@ int dx[] = {1, -1, 0, 0};
 int dy[] = {0, 0, 1, -1};
 
 ppi __successor__;
-int evaluate(pp **tempGrid)
+
+int heuristic_awsaf(pp **tempGrid)
 {
-    //Simple heuristic fr counting total orbs in the grid
+    //Simple heuristic for counting total orbs in the grid
     int r =0 , g = 0;
     for(int i = 0; i < SZ; i++)
     {
@@ -138,6 +143,11 @@ int evaluate(pp **tempGrid)
         r == 0 ? diff = 20000 :diff= g-r;
         return diff;
     }
+} 
+
+int evaluate(pp **tempGrid)
+{
+    return heuristic_awsaf(tempGrid);
 }
 
 
@@ -167,6 +177,7 @@ int check_winner(pp **tempGrid)
 }
 
 //-------------------------------------------------------------------------------------------------
+//the following three functions have been implemented using the files provided 
 vector<ppi> wec;
 void update_grid(pp **tempGrid, int x,int y, char col)
 {
@@ -223,10 +234,18 @@ void update(pp **tempGrid, int x, int y, char col)
 //-------------------------------------------------------------------------------------------------
 
 
+//minimax algorithm with alpha-beta pruning
+//max depth = 5, if time_threshold is achieved then cut-off
 int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
 {
     if(depth <= 0 || check_winner(tempGrid) != -1)
         return evaluate(tempGrid);
+
+    //time check
+    time_end = clock();
+    time_spent = (double)(time_end - time_begin) / CLOCKS_PER_SEC;
+
+    if(time_spent >= time_threshold)return evaluate(tempGrid);
 
     pp backupGrid[SZ][SZ];
     for(int i = 0; i < SZ; i++)
@@ -252,17 +271,13 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
             {
                 if(tempGrid[i][j].second == 0 || tempGrid[i][j].first == player)
                 {
-                    //cout<<i<<" "<<j<<" sel-max "<<tempGrid[i][j].first<<" "<<tempGrid[i][j].second<<endl;
-
                     //update tempgrid
                     update(tempGrid, i, j, player);
 
                     curr_value = minimax(tempGrid, depth - 1, false, alpha, beta);
 
-                    if(curr_value > best_value) {
+                    if(curr_value > best_value)
                         best_value = curr_value, successor = {i, j};
-                        //cout<<"Better val :"<<best_value<<" Coord :"<<successor.first<<" "<<successor.second<<endl;
-                    }
 
                     alpha = max(alpha, best_value);
 
@@ -298,8 +313,6 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
             {
                 if(tempGrid[i][j].second == 0 || tempGrid[i][j].first == otherPlayer)
                 {
-                   // cout<<i<<" "<<j<<" sel-min "<<tempGrid[i][j].first<<" "<<tempGrid[i][j].second<<endl;
-
                     //update tempgrid
                     update(tempGrid, i, j, otherPlayer);
 
@@ -330,29 +343,31 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
     return best_value;
 }
 
+ppi getRandomMove(){
+    while(true)
+    {
+        int x = rand() % 8;
+        int y = rand() % 8;
+
+        if(grid[x][y].second == 0 || grid[x][y].first == player)
+            return {x, y};
+    }
+}
+
 ppi select_move(int ch)
 {
     //random
     if(ch == 1)
-    {
-        while(true)
-        {
-            int x = rand() % 8;
-            int y = rand() % 8;
-
-            if(grid[x][y].second == 0 || grid[x][y].first == player)
-                return {x, y};
-        }
-    }
+        return getRandomMove();
 
     //minimax
     else if(ch == 2)
     {
-        clock_t start,end;
+	    time_begin = clock();
+        D = 5;
 
-	    start = clock();
-        D = 2;
         __successor__ = {-1, -1};
+        
         pp **arr = new pp*[SZ];
         for(int i = 0; i < SZ; i++)
             arr[i] = new pp[SZ];
@@ -362,23 +377,17 @@ ppi select_move(int ch)
             for(int j = 0; j < SZ; j++)
                 arr[i][j] = grid[i][j];
         }
-        printDynamicGrid(arr);nl;
-        float time = 0.0;
-        while(time < 500){
-            minimax(arr, D, true, -inf, inf);
-            end = clock() - start;
-            time = end/CLOCKS_PER_SEC * 1000;
-            cout<<"Time : "<<time<<" D: "<<D<<endl;
-            D++;
-            if(D >= 5)
-                break;
-        }
+        
+        minimax(arr, D, true, -inf, inf);
 
         //free memory
         for(int i  = 0; i < SZ; i++)
             delete arr[i];
 
         delete arr;
+
+        if(__successor__.first == -1 || __successor__.second == -1)
+            return getRandomMove();
 
         return __successor__;
     }
