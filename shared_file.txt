@@ -1,2 +1,9 @@
-0
-1 0
+G
+G1 G2 No G1 No No No No 
+G2 G2 G2 No No No No No 
+No G2 No No No No No No 
+G1 No No No No No No No 
+No No No No No No No No 
+R2 R1 No No No No No No 
+R2 R1 R2 No No No No No 
+R1 R2 No R1 No R1 R1 No 

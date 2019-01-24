@@ -2,7 +2,6 @@
 
 #include<bits/stdc++.h>
 #include<unistd.h>
-#include <ctime>
 
 #define dbg printf("in\n")
 #define nl printf("\n")
@@ -24,20 +23,15 @@
 #define ppi pair<int,int>
 
 #define SZ 8
-// #define D 2
+#define D 2
 
 using namespace std;
-
-//clock
-double time_threshold = 2.50, time_spent;
-clock_t time_begin, time_end;
 
 string str, line;
 vector<string> vec;
 char player, otherPlayer;
 pp grid[SZ][SZ];
 int splitCondition[SZ][SZ];
-int D = 2;
 
 int readFile()
 {
@@ -113,41 +107,45 @@ int dx[] = {1, -1, 0, 0};
 int dy[] = {0, 0, 1, -1};
 
 ppi __successor__;
-
-int heuristic_awsaf(pp **tempGrid)
+int evaluate(pp **tempGrid)
 {
-    //Simple heuristic for counting total orbs in the grid
-    int r =0 , g = 0;
+    //Simple heuristic fr counting total orbs in the grid
+    int r =0 ,g=0;
     for(int i = 0; i < SZ; i++)
     {
         for(int j = 0; j < SZ; j++)
         {
-            if(tempGrid[i][j].first == 'R') {
+            if(tempGrid[i][j].first == 'R'){
                 r+= tempGrid[i][j].second;
+
+            }
+            else{
+                g+= tempGrid[i][j].second;
+
             }
 
-            else {
-                g+= tempGrid[i][j].second;
-            }
         }
     }
-
-    if(player == 'R') {
-        int diff = r-g;
-        g == 0 ? diff = 20000 :diff= r-g;
-        return diff;
+    if(player == 'R'){
+        return r-g;
     }
-
-    else {
-        int diff = g-r;
-        r == 0 ? diff = 20000 :diff= g-r;
-        return diff;
+    else{
+        return g-r;
     }
-} 
+    // return 5000;
+    /*********
+     * New proposal
+     *We shall call a cell critical if the number of orbs in the cell is equal to one less than its critical mass.
 
-int evaluate(pp **tempGrid)
-{
-    return heuristic_awsaf(tempGrid);
+    1. If the board is a won game, the value is 10000.
+    2. If the board is a lost game, the value is -10000.
+    3. For every orb, for every enemy critical cell surrounding the orb, subtract 5 minus the critical mass of that cell from the value.
+    4. In case, the orb has no critical enemy cells in its adjacent cells at all, add 2 to the value if it is an edge cell or 3 if it is a corner cell.
+    5. In case, the orb has no critical enemy cells in its adjacent cells at all, add 2 to the value, if the cell is critical.
+    6. For every orb of the player's color, add 1 to the value.
+    7. For every contiguous blocks of critical cells of the player's color, add twice the number of cells in the block to the score.
+
+    *********/
 }
 
 
@@ -176,76 +174,64 @@ int check_winner(pp **tempGrid)
     return -1;
 }
 
-//-------------------------------------------------------------------------------------------------
-//the following three functions have been implemented using the files provided 
-vector<ppi> wec;
-void update_grid(pp **tempGrid, int x,int y, char col)
+
+void chainReaction(pp **tempGrid, int x, int y, char col)
+{
+    tempGrid[x][y].first = col;
+    tempGrid[x][y].second++;
+
+    ppi u;
+    int x2, y2;
+
+    queue<ppi> q;
+    q.push({x, y});
+
+    while(!q.empty())
+    {
+        u = q.front(); q.pop();
+
+        //because of chain reaction the game may have finished but the chain reactions would not stop
+        //this will cause segmentation fault in dfs, and an infinite loop in case of bfs
+        //so check if the game is over or not
+        if(check_winner(tempGrid) != -1)return;
+
+        if(tempGrid[u.first][u.second].second >= splitCondition[u.first][u.second])
+        {
+            tempGrid[u.first][u.second].second = 0;
+            tempGrid[u.first][u.second].first = 'X';
+
+            for(int i = 0; i < 4; i++)
+            {
+                x2 = u.first + dx[i];
+                y2 = u.second + dy[i];
+                if(x2 >= 0 && y2 >= 0 && x2 < SZ && y2 < SZ){
+                    tempGrid[x2][y2].first = col;
+                    tempGrid[x2][y2].second++;
+                    if(tempGrid[x2][y2].second >= splitCondition[x2][y2])
+                        q.push({x2, y2});
+                }
+            }
+            cout<<u.first<<" "<<u.second<<endl;
+            printDynamicGrid(tempGrid);nl;
+        }
+    }
+}
+
+
+void updateGrid(pp **tempGrid, int x, int y,char col)
 {
     if(tempGrid[x][y].first == 'X')
-        tempGrid[x][y].first = col, tempGrid[x][y].second = 1;
+        tempGrid[x][y] = {col, 1};
 
     else
-    {
-        if(splitCondition[x][y] == tempGrid[x][y].second + 1)
-            wec.pb({x, y});
-
-        tempGrid[x][y].first = col;
-        tempGrid[x][y].second++;
-    }
+        chainReaction(tempGrid, x, y, col);
 }
 
 
-void reaction(pp **tempGrid, int x,int y,char col)
-{
-    int x2, y2, cnt;
-    if(tempGrid[x][y].second == splitCondition[x][y])
-        tempGrid[x][y].first = 'X', tempGrid[x][y].second = 0;
-
-    else
-    {
-        cnt = tempGrid[x][y].second - splitCondition[x][y];
-        if(cnt >= splitCondition[x][y])
-            wec.pb({x, y});
-
-        tempGrid[x][y].first = col;
-        tempGrid[x][y].second = cnt;
-    }
-
-    for(int i = 0;i < 4; i++)
-    {
-        x2 = x + dx[i];
-        y2 = y + dy[i];
-
-        if(x2 >= 0 && x2 < SZ && y2 >= 0 && y2 < SZ)
-            update_grid(tempGrid, x2, y2, col);
-    }
-}
-
-
-void update(pp **tempGrid, int x, int y, char col)
-{
-    wec.clear();
-    update_grid(tempGrid, x, y, col);
-
-    for(ppi e : wec){
-        reaction(tempGrid, e.first, e.second, col);
-    }
-}
-//-------------------------------------------------------------------------------------------------
-
-
-//minimax algorithm with alpha-beta pruning
-//max depth = 5, if time_threshold is achieved then cut-off
 int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
 {
     if(depth <= 0 || check_winner(tempGrid) != -1)
         return evaluate(tempGrid);
-
-    //time check
-    time_end = clock();
-    time_spent = (double)(time_end - time_begin) / CLOCKS_PER_SEC;
-
-    if(time_spent >= time_threshold && depth != D)return evaluate(tempGrid);
 
     pp backupGrid[SZ][SZ];
     for(int i = 0; i < SZ; i++)
@@ -265,19 +251,23 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
     {
         best_value = -inf;
 
-        for(int i = SZ - 1; i >= 0; i--)
+        for(int i = 0; i < SZ; i++)
         {
             for(int j = 0; j < SZ; j++)
             {
                 if(tempGrid[i][j].second == 0 || tempGrid[i][j].first == player)
                 {
+                    //priorityQue.push({i,j});
+                    cout<<i<<" "<<j<<" sel-max "<<tempGrid[i][j].first<<" "<<tempGrid[i][j].second<<endl;
                     //update tempgrid
-                    update(tempGrid, i, j, player);
+                    updateGrid(tempGrid, i, j, player);
 
                     curr_value = minimax(tempGrid, depth - 1, false, alpha, beta);
 
-                    if(curr_value > best_value)
+                    if(curr_value > best_value){
                         best_value = curr_value, successor = {i, j};
+                        //cout<<"Better val :"<<best_value<<" Coord :"<<successor.first<<" "<<successor.second<<endl;
+                    }
 
                     alpha = max(alpha, best_value);
 
@@ -292,6 +282,7 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
                         f = true;
                         break;
                     }
+
                 }
             }
 
@@ -303,18 +294,18 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
         if(depth == D)
             __successor__ = successor;
     }
-
     else
     {
         best_value = inf;
-        for(int i = SZ - 1; i >= 0; i--)
+        for(int i = 0; i < SZ; i++)
         {
             for(int j = 0; j < SZ; j++)
             {
                 if(tempGrid[i][j].second == 0 || tempGrid[i][j].first == otherPlayer)
                 {
+                    cout<<i<<" "<<j<<" sel-min "<<tempGrid[i][j].first<<" "<<tempGrid[i][j].second<<endl;
                     //update tempgrid
-                    update(tempGrid, i, j, otherPlayer);
+                    updateGrid(tempGrid, i, j, otherPlayer);
 
                     curr_value = minimax(tempGrid, depth - 1, true, alpha, beta);
 
@@ -343,31 +334,25 @@ int minimax(pp **tempGrid, int depth, bool ismax, int alpha, int beta)
     return best_value;
 }
 
-ppi getRandomMove(){
-    while(true)
-    {
-        int x = rand() % 8;
-        int y = rand() % 8;
-
-        if(grid[x][y].second == 0 || grid[x][y].first == player)
-            return {x, y};
-    }
-}
-
 ppi select_move(int ch)
 {
     //random
     if(ch == 1)
-        return getRandomMove();
+    {
+        while(true)
+        {
+            int x = rand() % 8;
+            int y = rand() % 8;
+
+            if(grid[x][y].second == 0 || grid[x][y].first == player)
+                return {x, y};
+        }
+    }
 
     //minimax
     else if(ch == 2)
     {
-	    time_begin = clock();
-        D = 5;
-
         __successor__ = {-1, -1};
-        
         pp **arr = new pp*[SZ];
         for(int i = 0; i < SZ; i++)
             arr[i] = new pp[SZ];
@@ -377,7 +362,7 @@ ppi select_move(int ch)
             for(int j = 0; j < SZ; j++)
                 arr[i][j] = grid[i][j];
         }
-        
+        printDynamicGrid(arr);nl;
         minimax(arr, D, true, -inf, inf);
 
         //free memory
@@ -385,9 +370,6 @@ ppi select_move(int ch)
             delete arr[i];
 
         delete arr;
-
-        if(__successor__.first == -1 || __successor__.second == -1)
-            return getRandomMove();
 
         return __successor__;
     }
@@ -410,8 +392,8 @@ void writeFile(ppi x)
 
 int main(int argc, char *argv[])
 {
-    int i, j, k;
-    int n, m;
+    int i,j,k;
+    int n,m;
 
     //--------------------------------------------------------------------
     //split conditions
@@ -435,14 +417,12 @@ int main(int argc, char *argv[])
 
     //replace with arg
     player = *argv[1];
-    //k = *argv[2] - '0';
+    k = *argv[2] - '0';
 
     otherPlayer = 'R';
     if(player == 'R')
         otherPlayer = 'G';
 
-    //flag - > if red and first move then choose randomly
-    bool flag = 1;
     while(true)
     {
         while(true)
@@ -452,10 +432,14 @@ int main(int argc, char *argv[])
                 break;
         }
 
+        //ppi x = select_move(k);
+        printf("Enter coordinates:\nx-coord: ");
         ppi x;
+        //scanf("First : %d\n Second : %d\n",&x.first,&x.second);
 
-        if(player == 'R' && flag){x = select_move(1); flag = 0;}
-        else x =select_move(2);
+        cin>>x.first;
+        cout<<"y-coord : ";
+        cin>>x.second;
 
         writeFile(x);
     }
