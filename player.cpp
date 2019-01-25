@@ -435,7 +435,6 @@ int main(int argc, char *argv[])
 
     //replace with arg
     player = *argv[1];
-    //k = *argv[2] - '0';
 
     otherPlayer = 'R';
     if(player == 'R')
